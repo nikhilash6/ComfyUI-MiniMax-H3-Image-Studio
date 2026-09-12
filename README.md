@@ -54,8 +54,12 @@ git -C ComfyUI/custom_nodes/ComfyUI-MiniMax-H3-Image-Studio pull --ff-only
 
 Open a file from `examples/ui/`, or drag a file from `examples/png/` onto the canvas.
 
+Start with **Image Generate** or **Image Edit** below. Both use a matching 768p eight-step Turbo adapter, five frames, and a 0.70 MP canvas. Image Edit uses REF2VA references rather than locking frame zero to the original image. Existing workflows remain available for comparison.
+
 | Workflow | UI JSON | PNG | API JSON |
 |---|---|---|---|
+| Image Generate, Turbo 768p | [Open](examples/ui/H3_IMAGE_GENERATE.json) | [Open](examples/png/H3_IMAGE_GENERATE.png) | [API](examples/api/H3_IMAGE_GENERATE_API.json) |
+| Image Edit, Turbo 768p | [Open](examples/ui/H3_IMAGE_EDIT.json) | [Open](examples/png/H3_IMAGE_EDIT.png) | [API](examples/api/H3_IMAGE_EDIT_API.json) |
 | Text to Image | [Open](examples/ui/H3_T2I.json) | [Open](examples/png/H3_T2I.png) | [API](examples/api/H3_T2I_API.json) |
 | Text to Image, single frame (experimental) | [Open](examples/ui/H3_T2I_SINGLE.json) | [Open](examples/png/H3_T2I_SINGLE.png) | [API](examples/api/H3_T2I_SINGLE_API.json) |
 | Image to Image | [Open](examples/ui/H3_I2I.json) | [Open](examples/png/H3_I2I.png) | [API](examples/api/H3_I2I_API.json) |
@@ -89,7 +93,7 @@ For image-to-image and reference-edit workflows, select an image in every `Load 
 
 `H3_DETAIL_REFINER` is a separate generative image-edit pass. Load a finished H3 image, or connect any `Single Image Output` directly to `Scale Image to Total Pixels`. It is optional and does not change H3 generation.
 
-The workflow uses ComfyUI's native Qwen Image Edit 2511 path with the four-step Lightning adapter. Qwen 2511 was selected over FLUX.2 Klein 4B because this pass prioritizes edit fidelity, identity, and scene preservation rather than the smallest model.
+The workflow uses ComfyUI's native Qwen Image Edit 2511 path with the four-step Lightning adapter. It can generate new detail, but may also change faces, objects, and lighting. It is not a guaranteed fidelity upgrade over the source or a faster model.
 
 | Component | File | Folder |
 |---|---|---|
@@ -130,6 +134,8 @@ H3 processes multiple frames even when the output is one image.
 | Base speed | `res_multistep` | `simple` | 12 | 12/3 |
 | FL2VA Turbo v1.0 | `euler` | `simple` | 8 | 12/3 |
 | FL2VA Turbo v1.0 768p | `euler` | `simple` | 4 | 6/3 |
+| FL2VA Turbo v1.0 768p | `euler` | `simple` | 8 | 6/3 |
+| REF2VA Turbo v1.0 768p | `euler` | `simple` | 8 | 12/3 |
 | REF2VA Turbo v0.1 | `euler` | `simple` | 4 | 12/3 |
 | Hybrid single image | `er_sde` | `sgm_uniform` | 8 | 12/3 |
 
@@ -141,9 +147,13 @@ Choose `custom | use controls below` in `Sampling Preset` to select any installe
 |---|---|
 | FL2VA Turbo v1.0, 8 steps | `minimax_h3_fl2v_turbo_8step_v1.0_comfyui_bf16.safetensors` |
 | FL2VA Turbo v1.0 768p, 4 steps | `minimax_h3_fl2v_turbo_4step_v1.0_768p_comfyui_bf16.safetensors` |
+| FL2VA Turbo v1.0 768p, 8 steps | `minimax_h3_fl2v_turbo_8step_v1.0_768p_comfyui_bf16.safetensors` |
+| REF2VA Turbo v1.0 768p, 8 steps | `minimax_h3_ref2v_turbo_8step_v1.0_768p_comfyui_bf16.safetensors` |
 | REF2VA Turbo v0.1, 4 steps | `minimax_h3_ref2v_turbo_4step_v0.1_comfyui_bf16.safetensors` |
 
 Do not mix FL2VA and REF2VA adapters or reuse one adapter's shifts with another. The older LightX v0.1 profile names remain available only to load existing workflows.
+
+Download the adapters from [LightX2V](https://huggingface.co/lightx2v/Minimax-h3-Turbo/tree/main). The eight-step REF2VA settings follow the [author's release announcement](https://huggingface.co/lightx2v/Minimax-h3-Turbo/discussions/51): its video shift is **12**, not the FL2VA 768p value of 6.
 
 The hybrid single-image profile reproduces the linked community workflow. It is experimental and expects the model stack listed below; it is not an official MiniMax recipe.
 
@@ -160,6 +170,10 @@ Use the body pose and limb positions from <Picture 2>. The final pose must visib
 
 Each reference socket represents exactly one picture. If an upstream node sends an IMAGE batch, only its first image is used so later sockets keep stable `<Picture N>` numbers. State the role of every connected picture explicitly in the target instructions.
 
+`reference_transport=native` uses both the vision encoder and VAE references. This is the default. `semantic (experimental)` sends pictures to the vision encoder only, following [ComfyUI's text-encoder-only reference path](https://github.com/Comfy-Org/ComfyUI/commit/1aec3a1351). It avoids VAE reference encoding and reference-latent attention, but may lose identity, exact layout, and small details. It does not reduce the size of the H3 model or text encoder. Keep the VAE connected for decoding.
+
+The older `H3_I2I` workflow anchors frame zero to the source. With only a few frames, the result may remain close to that source. Use `H3_IMAGE_EDIT` for requested changes to objects, pose, color, or composition. No frame-selection score can determine whether a text instruction was followed; check the output visually.
+
 ### Experimental one-frame workflows
 
 `H3_T2I_SINGLE`, `H3_I2I_SINGLE`, and `H3_REFERENCE_SINGLE` generate a true `T=1` H3 latent directly. They do not patch ComfyUI or route around Image Studio's conditioning output. Their model stack follows the community workflow:
@@ -173,7 +187,7 @@ Each reference socket represents exactly one picture. If an upstream node sends 
 
 The image VAE is intended only for one-frame output. Keep `minimax_h3_video_vae_fp16.safetensors` for multi-frame workflows. The hybrid checkpoint, image VAE, and detail adapter are community experiments and inherit their source-model licenses.
 
-The detail adapter is intentionally set to `0.5`. In direct pose-transfer testing, `1.0` over-preserved Picture 1 and suppressed the requested pose, while `0.5` retained its identity and environment and allowed Picture 2's pose to transfer.
+The detail adapter is set to `0.5` based on an earlier pose-transfer experiment. This is not a general guarantee: one-frame editing and adapter combinations remain experimental.
 
 One-frame T2I uses the hybrid checkpoint's FL2VA base without an image reference. One-frame I2I cannot use FL2VA's exact frame-0 keyframe because that keyframe would occupy the only output frame; Image Studio automatically switches that case to Picture 1 reference conditioning. Multi-frame I2I continues to use the original FL2VA keyframe path.
 
@@ -185,17 +199,29 @@ The approach was prompted by the [single-image community workflow](https://www.r
 
 Resolution is rounded to a 32-pixel grid. `1 MP` follows ComfyUI's `1024²` convention.
 
-The native H3 canvas is about 1344×768, or one megapixel. Start with `native detail | 0.98 MP`. A 2 MP canvas can help small or distant details in some images, but increases memory and runtime and is not a general quality upgrade.
+The native H3 canvas is about 1344×768, or one megapixel. Start at 0.70 MP; use 0.40 MP for quick composition tests or 0.98 MP for more detail. A 2 MP canvas increases memory and runtime and is not a general quality upgrade.
 
 ## Performance
 
+See [v22 validation](VALIDATION.md) for local timings, visual findings, and limitations. The default remains native references; semantic mode is not consistently faster.
+
 - Prefer the official pruned INT8 ConvRot diffusion model and NVFP4 text encoder listed above. The Comfy model card recommends the INT8 ConvRot model on current CUDA/PyTorch builds and FP8 only as a fallback.
-- Use the base 20-step profile as the quality reference. The official Turbo v1.0 eight-step profile is the practical speed/quality default; the 768p four-step profile favors speed.
+- Compare Turbo results against the base 20-step profile when quality matters. Distilled video adapters are not trained specifically for these short still-image packets.
 - SageAttention is optional. ComfyUI's H3 guide reports roughly double sampling speed with minimal quality loss. Enable it globally with ComfyUI's `--use-sage-attention` option or a compatible attention node, not both.
 - Match FL2VA source images to the generation canvas for lower preprocessing cost. In REF2VA, `match` is faster; the 2048-short-edge option can strengthen identity at higher cost.
 - Change one optimization at a time and compare with the same seed. Stacking unrelated caches, attention patches, and distilled adapters can reduce detail or introduce incompatibilities.
 
 Experimental W4A8 diffusion and INT8 ConvRot VAE variants require ComfyUI 0.31 or newer. They are not workflow defaults because hardware support and output behavior vary.
+
+### Model storage and Hugging Face cache
+
+ComfyUI's `extra_model_paths.yaml` controls additional model search folders. Hugging Face's cache is separate: set `HF_HOME` to a folder on the disk with free space before launching ComfyUI. If previously configured, also update `HF_HUB_CACHE` and `HF_XET_CACHE`. See the [official cache settings](https://huggingface.co/docs/huggingface_hub/package_reference/environment_variables).
+
+Downloading with `hf download ... --local-dir <model-folder>` places the usable file directly in that folder; the folder also contains small download metadata. Explicit download paths can override environment settings. Do not delete or move a cache while downloads or model loads are running.
+
+### Receiving updates
+
+Git installations receive changes after a pull and ComfyUI restart. Registry installations receive numbered releases through ComfyUI Manager once the Registry finishes publishing and its cache refreshes. A successful GitHub push does not by itself make a Registry release available. Reopen the new example workflows after updating; saved canvases do not automatically acquire new nodes or recipes.
 
 ## Troubleshooting
 

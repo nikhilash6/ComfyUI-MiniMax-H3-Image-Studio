@@ -76,6 +76,8 @@ SAMPLING_PROFILES: Dict[str, Tuple[str, str, int, float, float]] = {
     "base speed | RES 12 steps": ("res_multistep", "simple", 12, 12.0, 3.0),
     "Turbo v1.0 | 8 steps": ("euler", "simple", 8, 12.0, 3.0),
     "Turbo v1.0 768p | 4 steps": ("euler", "simple", 4, 6.0, 3.0),
+    "FL2VA Turbo v1.0 768p | 8 steps": ("euler", "simple", 8, 6.0, 3.0),
+    "REF2VA Turbo v1.0 768p | 8 steps": ("euler", "simple", 8, 12.0, 3.0),
     "REF2VA Turbo v0.1 | 4 steps": ("euler", "simple", 4, 12.0, 3.0),
     "hybrid single image | ER-SDE 8 steps": ("er_sde", "sgm_uniform", 8, 12.0, 3.0),
 }
@@ -343,7 +345,7 @@ def _normalize_prompt(
 
     preserve_strength = float(max(0.0, min(1.0, preserve_strength)))
     if preserve_strength >= 0.8:
-        preserve = "Strictly preserve identity, pose, composition, perspective, and object geometry."
+        preserve = "Preserve unmentioned source traits. Requested changes take priority over identity, pose, composition, and geometry preservation."
     elif preserve_strength >= 0.5:
         preserve = "Preserve identity, pose, composition, perspective, and object geometry unless the edit requires a change."
     else:
@@ -377,7 +379,7 @@ def _normalize_prompt(
             "change to match <Picture 1>. Use each picture only for its explicitly assigned traits."
         )
     else:
-        additional_rule = " <Picture 1> is the source reference."
+        additional_rule = " <Picture 1> is the source reference. The target instructions take priority over source preservation."
     return (
         f"Follow the target image instructions exactly.{additional_rule} {primary_rule} "
         f"{still}\n\nTarget image instructions: {prompt}"
@@ -823,12 +825,15 @@ class H3ImagePrepare:
         reference_image_7: Optional[torch.Tensor] = None,
         reference_image_8: Optional[torch.Tensor] = None,
         reference_image_9: Optional[torch.Tensor] = None,
+        reference_transport: str = "native",
     ):
         width = _round_to_multiple(width, CANVAS_MULTIPLE)
         height = _round_to_multiple(height, CANVAS_MULTIPLE)
         internal_frames = _resolve_frame_count(frame_preset)
         single_frame_i2i = mode == "image_to_image (FL2VA)" and internal_frames == 1
         conditioning_mode = "reference_edit (REF2VA)" if single_frame_i2i else mode
+        if reference_transport not in ("native", "semantic (experimental)"):
+            raise ValueError("Unknown reference transport. Choose native or semantic (experimental).")
 
         # Preserve the complete selected temporal profile. Single Image Output
         # decides whether to expose one still or every generated candidate.
@@ -916,7 +921,7 @@ class H3ImagePrepare:
         else:
             if source_image is None:
                 raise ValueError("Reference Edit mode requires source_image as <Picture 1>.")
-            if vae is None:
+            if vae is None and reference_transport == "native":
                 raise ValueError("Reference Edit mode requires a VAE to encode the reference image(s).")
             fitted_source = _resize_image(references[0], width, height, source_fit)
             ref_mode = "max_identity_2048" if reference_size == "max_identity_2048" else "match_generation_area"
@@ -926,18 +931,18 @@ class H3ImagePrepare:
             for reference_image in references:
                 reference, tw, th = _reference_resize(reference_image, width, height, ref_mode)
                 ref_items.append({"type": "image", "data": reference})
-                ref_blocks.append({
-                    "kind": "image",
-                    "latent_h": th // 16,
-                    "latent_w": tw // 16,
-                    "latent": vae.encode(reference),
-                })
+                if reference_transport == "native":
+                    ref_blocks.append({
+                        "kind": "image",
+                        "latent_h": th // 16,
+                        "latent_w": tw // 16,
+                        "latent": vae.encode(reference),
+                    })
                 reference_sizes.append(f"{tw}x{th}")
             tokens = clip.tokenize(final_prompt, minimax_ref_items=ref_items)
             cond = clip.encode_from_tokens_scheduled(tokens)
-            cond = node_helpers.conditioning_set_values(cond, {
-                "minimax_refs": ref_blocks,
-            })
+            if ref_blocks:
+                cond = node_helpers.conditioning_set_values(cond, {"minimax_refs": ref_blocks})
             if single_frame_i2i:
                 checkpoint_note = (
                     "Use a hybrid or REF2VA checkpoint; one-frame I2I uses Picture 1 reference conditioning instead "
@@ -949,6 +954,8 @@ class H3ImagePrepare:
                     f"Use a REF2VA checkpoint; {len(references)} ordered reference image(s) encoded "
                     f"as {', '.join(reference_sizes)} and exposed as <Picture 1> through <Picture {len(references)}>."
                 )
+            if reference_transport == "semantic (experimental)":
+                checkpoint_note += " Semantic references use the vision encoder only, without VAE reference latents. Identity and fine details may change."
 
         if natural_frames > 362:
             trained_note = "beyond the documented 124-362-frame training range"
@@ -1243,8 +1250,8 @@ class H3ReferenceEditPrepare:
                     {
                         "default": RECOMMENDED_FRAME_PROFILE,
                         "tooltip": (
-                            "One frame removes temporal competition and is recommended with the experimental H3 image "
-                            "VAE. Use 5 or more frames with the standard H3 video VAE."
+                            "Start with 5 frames and the standard H3 video VAE. One frame with the experimental "
+                            "image VAE is faster but may reduce image quality and edit adherence."
                         ),
                     },
                 ),
@@ -1268,7 +1275,7 @@ class H3ReferenceEditPrepare:
                 "reference_detail": (
                     ["match_generation_area", "max_identity_2048"],
                     {
-                        "default": "max_identity_2048",
+                        "default": "match_generation_area",
                         "tooltip": (
                             "How much source resolution each REF2VA reference keeps before VAE encoding. "
                             "max_identity_2048 may preserve more identity detail at higher memory cost."
@@ -1289,6 +1296,10 @@ class H3ReferenceEditPrepare:
                 "reference_image_7": ("IMAGE", {"tooltip": "Optional <Picture 7> reference."}),
                 "reference_image_8": ("IMAGE", {"tooltip": "Optional <Picture 8> reference."}),
                 "reference_image_9": ("IMAGE", {"tooltip": "Optional <Picture 9> reference."}),
+                "reference_transport": (["native", "semantic (experimental)"], {
+                    "default": "native",
+                    "tooltip": "Native uses vision and VAE references. Semantic uses vision only: fewer reference tokens, but weaker identity and fine-detail preservation.",
+                }),
             },
         }
 
@@ -1326,6 +1337,7 @@ class H3ReferenceEditPrepare:
         reference_image_7: Optional[torch.Tensor] = None,
         reference_image_8: Optional[torch.Tensor] = None,
         reference_image_9: Optional[torch.Tensor] = None,
+        reference_transport: str = "native",
     ):
         return H3ImagePrepare().prepare(
             clip=clip,
@@ -1348,6 +1360,7 @@ class H3ReferenceEditPrepare:
             reference_image_7=reference_image_7,
             reference_image_8=reference_image_8,
             reference_image_9=reference_image_9,
+            reference_transport=reference_transport,
         )
 
 

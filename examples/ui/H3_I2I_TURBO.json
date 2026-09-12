@@ -61,7 +61,11 @@
       "widgets_values": [
         "input.png",
         "image"
-      ]
+      ],
+      "widgets_values_named": {
+        "image": "input.png",
+        "upload": "image"
+      }
     },
     {
       "id": 1,
@@ -113,7 +117,11 @@
       "widgets_values": [
         "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
         "default"
-      ]
+      ],
+      "widgets_values_named": {
+        "unet_name": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+        "weight_dtype": "default"
+      }
     },
     {
       "id": 2,
@@ -176,7 +184,12 @@
         "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
         "minimax",
         "default"
-      ]
+      ],
+      "widgets_values_named": {
+        "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+        "type": "minimax",
+        "device": "default"
+      }
     },
     {
       "id": 3,
@@ -219,7 +232,10 @@
       },
       "widgets_values": [
         "minimax_h3_video_vae_fp16.safetensors"
-      ]
+      ],
+      "widgets_values_named": {
+        "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+      }
     },
     {
       "id": 4,
@@ -316,6 +332,12 @@
         2,
         false
       ],
+      "widgets_values_named": {
+        "aspect_ratio": "source image",
+        "resolution_profile": "native detail | 0.98 MP",
+        "custom_megapixels": 2,
+        "limit_to_native_area": false
+      },
       "color": "#443066",
       "bgcolor": "#211635"
     },
@@ -473,6 +495,15 @@
         "crop_center",
         true
       ],
+      "widgets_values_named": {
+        "edit_instruction": "Relight the source into a dramatic finished editorial photograph while preserving the person, pose, camera angle, composition and background geometry.",
+        "width": 1344,
+        "height": 768,
+        "quality_profile": "recommended | 5 frames",
+        "source_fidelity": 0.75,
+        "source_fit": "crop_center",
+        "optimize_for_still": true
+      },
       "color": "#24395c",
       "bgcolor": "#101c31"
     },
@@ -517,7 +548,11 @@
       "widgets_values": [
         1,
         "randomize"
-      ]
+      ],
+      "widgets_values_named": {
+        "noise_seed": 1,
+        "control_after_generate": "randomize"
+      }
     },
     {
       "id": 7,
@@ -719,6 +754,17 @@
         0.6,
         0.6
       ],
+      "widgets_values_named": {
+        "sampling_profile": "Turbo v1.0 | 8 steps",
+        "custom_sampler": "res_multistep",
+        "custom_scheduler": "simple",
+        "custom_steps": 20,
+        "custom_denoise": 1,
+        "custom_shift_video": 12,
+        "custom_shift_audio": 3,
+        "custom_beta_alpha": 0.6,
+        "custom_beta_beta": 0.6
+      },
       "color": "#5a3424",
       "bgcolor": "#2c1810"
     },
@@ -1010,6 +1056,16 @@
         4,
         false
       ],
+      "widgets_values_named": {
+        "strategy": "decode_recommended",
+        "manual_index": 0,
+        "skip_first_frames": 0,
+        "candidate_start": 0,
+        "candidate_end": 1,
+        "similarity_weight": 0.35,
+        "top_k": 4,
+        "emit_candidate_batch": false
+      },
       "color": "#25534d",
       "bgcolor": "#102a27"
     },
@@ -1055,7 +1111,10 @@
       "properties": {},
       "widgets_values": [
         "MiniMax_H3_Turbo_v1_Image"
-      ]
+      ],
+      "widgets_values_named": {
+        "filename_prefix": "MiniMax_H3_Turbo_v1_Image"
+      }
     },
     {
       "id": 15,
@@ -1113,7 +1172,11 @@
       "widgets_values": [
         "minimax_h3_fl2v_turbo_8step_v1.0_comfyui_bf16.safetensors",
         1
-      ]
+      ],
+      "widgets_values_named": {
+        "lora_name": "minimax_h3_fl2v_turbo_8step_v1.0_comfyui_bf16.safetensors",
+        "strength_model": 1
+      }
     }
   ],
   "links": [
@@ -1297,7 +1360,7 @@
       ]
     },
     "image_studio": {
-      "release": "v21.0.0",
+      "release": "v22.0.0",
       "source_api": "examples/api/H3_I2I_TURBO_API.json"
     }
   },

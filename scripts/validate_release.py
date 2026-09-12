@@ -15,6 +15,8 @@ from pathlib import Path
 
 
 SLUGS = (
+    "H3_IMAGE_GENERATE",
+    "H3_IMAGE_EDIT",
     "H3_T2I",
     "H3_T2I_SINGLE",
     "H3_I2I",
@@ -221,6 +223,19 @@ def validate_api(repo: Path, slug: str) -> dict:
         assert lora["inputs"]["strength_model"] == 1.0
         assert lora["inputs"]["lora_name"] == "minimax_h3_fl2v_turbo_8step_v1.0_comfyui_bf16.safetensors"
         assert profile == "Turbo v1.0 | 8 steps"
+    if slug in {"H3_IMAGE_GENERATE", "H3_IMAGE_EDIT"}:
+        family = "fl2v" if slug == "H3_IMAGE_GENERATE" else "ref2v"
+        lora_id, lora = nodes_by_type["LoraLoaderModelOnly"]
+        assert lora["inputs"]["lora_name"] == f"minimax_h3_{family}_turbo_8step_v1.0_768p_comfyui_bf16.safetensors"
+        assert lora["inputs"]["strength_model"] == 1.0
+        assert sampling["inputs"]["model"] == [lora_id, 0]
+        assert profile == f"{'FL2VA' if family == 'fl2v' else 'REF2VA'} Turbo v1.0 768p | 8 steps"
+        if slug == "H3_IMAGE_EDIT":
+            _, prepare = nodes_by_type["H3ReferenceEditPrepare"]
+            assert prepare["inputs"]["quality_profile"] == "recommended | 5 frames"
+            assert prepare["inputs"]["reference_transport"] == "native"
+            assert prepare["inputs"]["reference_detail"] == "match_generation_area"
+            assert "H3ImageToImagePrepare" not in nodes_by_type
     if slug == "H3_REFERENCE_SINGLE":
         _, prepare = nodes_by_type["H3ReferenceEditPrepare"]
         _, unet = nodes_by_type["UNETLoader"]

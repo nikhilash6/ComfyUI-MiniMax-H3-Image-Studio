@@ -61,7 +61,11 @@
       "widgets_values": [
         "input.png",
         "image"
-      ]
+      ],
+      "widgets_values_named": {
+        "image": "input.png",
+        "upload": "image"
+      }
     },
     {
       "id": 1,
@@ -113,7 +117,11 @@
       "widgets_values": [
         "minimax_h3_hybrid_fl2va_ref2va_b25-49-int8.safetensors",
         "default"
-      ]
+      ],
+      "widgets_values_named": {
+        "unet_name": "minimax_h3_hybrid_fl2va_ref2va_b25-49-int8.safetensors",
+        "weight_dtype": "default"
+      }
     },
     {
       "id": 2,
@@ -176,7 +184,12 @@
         "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
         "minimax",
         "default"
-      ]
+      ],
+      "widgets_values_named": {
+        "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+        "type": "minimax",
+        "device": "default"
+      }
     },
     {
       "id": 3,
@@ -219,7 +232,10 @@
       },
       "widgets_values": [
         "minimax_h3_t1_image_vae_step1597.safetensors"
-      ]
+      ],
+      "widgets_values_named": {
+        "vae_name": "minimax_h3_t1_image_vae_step1597.safetensors"
+      }
     },
     {
       "id": 4,
@@ -316,6 +332,12 @@
         2,
         false
       ],
+      "widgets_values_named": {
+        "aspect_ratio": "source image",
+        "resolution_profile": "native detail | 0.98 MP",
+        "custom_megapixels": 2,
+        "limit_to_native_area": false
+      },
       "color": "#443066",
       "bgcolor": "#211635"
     },
@@ -328,7 +350,7 @@
       ],
       "size": [
         400,
-        456
+        480
       ],
       "flags": {},
       "order": 8,
@@ -479,6 +501,16 @@
             "name": "optimize_for_still"
           },
           "link": null
+        },
+        {
+          "localized_name": "reference_transport",
+          "name": "reference_transport",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "reference_transport"
+          },
+          "link": null
         }
       ],
       "outputs": [
@@ -537,8 +569,20 @@
         0.6,
         "crop_center",
         "max_identity_2048",
-        true
+        true,
+        "native"
       ],
+      "widgets_values_named": {
+        "edit_instruction": "Use <Picture 1> as the primary person, pose, and scene. Replace only the jacket with the structured black jacket and silver details from <Picture 2>. Produce one finished photograph, not a collage.",
+        "width": 1344,
+        "height": 768,
+        "quality_profile": "single image | 1 frame (image VAE)",
+        "source_fidelity": 0.6,
+        "source_fit": "crop_center",
+        "reference_detail": "max_identity_2048",
+        "optimize_for_still": true,
+        "reference_transport": "native"
+      },
       "color": "#24395c",
       "bgcolor": "#101c31"
     },
@@ -583,7 +627,11 @@
       "widgets_values": [
         1,
         "randomize"
-      ]
+      ],
+      "widgets_values_named": {
+        "noise_seed": 1,
+        "control_after_generate": "randomize"
+      }
     },
     {
       "id": 7,
@@ -785,6 +833,17 @@
         0.6,
         0.6
       ],
+      "widgets_values_named": {
+        "sampling_profile": "hybrid single image | ER-SDE 8 steps",
+        "custom_sampler": "res_multistep",
+        "custom_scheduler": "simple",
+        "custom_steps": 20,
+        "custom_denoise": 1,
+        "custom_shift_video": 12,
+        "custom_shift_audio": 3,
+        "custom_beta_alpha": 0.6,
+        "custom_beta_beta": 0.6
+      },
       "color": "#5a3424",
       "bgcolor": "#2c1810"
     },
@@ -1076,6 +1135,16 @@
         1,
         false
       ],
+      "widgets_values_named": {
+        "strategy": "decode_recommended",
+        "manual_index": 0,
+        "skip_first_frames": 0,
+        "candidate_start": 0,
+        "candidate_end": 1,
+        "similarity_weight": 0.35,
+        "top_k": 1,
+        "emit_candidate_batch": false
+      },
       "color": "#25534d",
       "bgcolor": "#102a27"
     },
@@ -1121,7 +1190,10 @@
       "properties": {},
       "widgets_values": [
         "MiniMax_H3_Reference_Single"
-      ]
+      ],
+      "widgets_values_named": {
+        "filename_prefix": "MiniMax_H3_Reference_Single"
+      }
     },
     {
       "id": 14,
@@ -1179,7 +1251,11 @@
       "widgets_values": [
         "reference_2.png",
         "image"
-      ]
+      ],
+      "widgets_values_named": {
+        "image": "reference_2.png",
+        "upload": "image"
+      }
     },
     {
       "id": 15,
@@ -1237,7 +1313,11 @@
       "widgets_values": [
         "minimax_h3_fl2v_turbo_8step_v1.0_comfyui_bf16.safetensors",
         0.75
-      ]
+      ],
+      "widgets_values_named": {
+        "lora_name": "minimax_h3_fl2v_turbo_8step_v1.0_comfyui_bf16.safetensors",
+        "strength_model": 0.75
+      }
     },
     {
       "id": 16,
@@ -1295,7 +1375,11 @@
       "widgets_values": [
         "MaxiMin-HHH-R2V-ThisIsFine_LoRA_V0_1.safetensors",
         0.5
-      ]
+      ],
+      "widgets_values_named": {
+        "lora_name": "MaxiMin-HHH-R2V-ThisIsFine_LoRA_V0_1.safetensors",
+        "strength_model": 0.5
+      }
     }
   ],
   "links": [
@@ -1495,7 +1579,7 @@
       ]
     },
     "image_studio": {
-      "release": "v21.0.0",
+      "release": "v22.0.0",
       "source_api": "examples/api/H3_REFERENCE_SINGLE_API.json"
     }
   },

@@ -4,6 +4,14 @@ All notable changes to MiniMax H3 Image Studio are documented here.
 
 ## [Unreleased]
 
+## [22.0.0] - 2026-09-12
+
+- Added eight-step 768p generation and REF2VA editing workflows with matching Turbo adapters and separate sigma shifts.
+- Added optional vision-encoder-only reference conditioning without VAE reference latents.
+- Removed preservation wording that could contradict explicit edits at high source fidelity.
+- Reduced the default reference resolution budget and clarified one-frame limitations.
+- Kept existing workflow types and sampling recipes compatible; added regression checks for reference order, conditioning, and adapter schedules.
+
 ## [21.0.0] - 2026-08-20
 
 - Replaced the FLUX.2 Klein 4B refiner with a four-step Qwen Image Edit 2511 generative detail pass.

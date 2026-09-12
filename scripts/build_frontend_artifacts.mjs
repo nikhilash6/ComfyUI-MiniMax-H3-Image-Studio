@@ -22,6 +22,8 @@ if (!chromiumPath) throw new Error("Set CHROMIUM_PATH to a Chromium/Chrome execu
 const { chromium } = require(playwrightModule);
 
 const workflowSpecs = [
+  { slug: "H3_IMAGE_GENERATE", api: "H3_IMAGE_GENERATE_API.json" },
+  { slug: "H3_IMAGE_EDIT", api: "H3_IMAGE_EDIT_API.json" },
   { slug: "H3_T2I", api: "H3_T2I_API.json" },
   { slug: "H3_T2I_SINGLE", api: "H3_T2I_SINGLE_API.json" },
   { slug: "H3_I2I", api: "H3_I2I_API.json" },

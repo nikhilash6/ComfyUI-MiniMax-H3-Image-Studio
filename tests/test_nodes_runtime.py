@@ -304,6 +304,53 @@ class RuntimeNodeTests(unittest.TestCase):
             ("er_sde", "simple", 4, 12.0, 3.0),
         )
 
+    def test_768p_eight_step_profiles_use_distinct_shifts(self):
+        self.assertEqual(self.nodes.SAMPLING_PROFILES["FL2VA Turbo v1.0 768p | 8 steps"],
+                         ("euler", "simple", 8, 6.0, 3.0))
+        self.assertEqual(self.nodes.SAMPLING_PROFILES["REF2VA Turbo v1.0 768p | 8 steps"],
+                         ("euler", "simple", 8, 12.0, 3.0))
+
+    def test_preservation_never_overrides_an_explicit_edit(self):
+        for mode in ("image_to_image (FL2VA)", "reference_edit (REF2VA)"):
+            prompt = self.nodes._normalize_prompt(mode, "Change the pose.", True, 1.0)
+            self.assertIn("take priority", prompt)
+            self.assertNotIn("Strictly preserve", prompt)
+
+    def test_reference_transport_keeps_picture_order_without_source_anchor(self):
+        class Clip:
+            def tokenize(self, prompt, **kwargs):
+                self.items = kwargs["minimax_ref_items"]
+                return prompt
+
+            def encode_from_tokens_scheduled(self, tokens):
+                return [[torch.zeros(1), {}]]
+
+        class Vae:
+            def __init__(self):
+                self.calls = 0
+
+            def encode(self, image):
+                self.calls += 1
+                return torch.zeros(1, 24, 1, 4, 4)
+
+        for transport in ("native", "semantic (experimental)"):
+            with self.subTest(transport=transport):
+                clip, vae = Clip(), Vae()
+                cond, latent, *_ = self.nodes.H3ReferenceEditPrepare().prepare(
+                    clip, vae, torch.zeros(1, 64, 64, 3), "Use the color from <Picture 2>.",
+                    64, 64, self.nodes.RECOMMENDED_FRAME_PROFILE, 0.6,
+                    "crop_center", "match_generation_area", True,
+                    reference_image_2=torch.ones(1, 64, 64, 3),
+                    reference_transport=transport,
+                )
+                self.assertEqual(len(clip.items), 2)
+                self.assertEqual(float(clip.items[0]["data"].mean()), 0.0)
+                self.assertEqual(float(clip.items[1]["data"].mean()), 1.0)
+                self.assertNotIn("minimax_keyframes", cond[0][1])
+                self.assertEqual(vae.calls, 2 if transport == "native" else 0)
+                self.assertEqual("minimax_refs" in cond[0][1], transport == "native")
+                self.assertEqual(latent["h3_output_strategy"], "stable_quality")
+
     def test_sampling_preset_exposes_custom_controls(self):
         inputs = self.nodes.H3ImageSamplingPreset.INPUT_TYPES()
         self.assertIn(self.nodes.CUSTOM_SAMPLING_PROFILE, inputs["required"]["sampling_profile"][0])

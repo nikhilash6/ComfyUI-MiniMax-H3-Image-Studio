@@ -61,7 +61,11 @@
       "widgets_values": [
         "input.png",
         "image"
-      ]
+      ],
+      "widgets_values_named": {
+        "image": "input.png",
+        "upload": "image"
+      }
     },
     {
       "id": 1,
@@ -113,7 +117,11 @@
       "widgets_values": [
         "qwen_image_edit_2511_int8_convrot.safetensors",
         "default"
-      ]
+      ],
+      "widgets_values_named": {
+        "unet_name": "qwen_image_edit_2511_int8_convrot.safetensors",
+        "weight_dtype": "default"
+      }
     },
     {
       "id": 2,
@@ -177,7 +185,12 @@
         "qwen_2.5_vl_7b_fp8_scaled.safetensors",
         "qwen_image",
         "default"
-      ]
+      ],
+      "widgets_values_named": {
+        "clip_name": "qwen_2.5_vl_7b_fp8_scaled.safetensors",
+        "type": "qwen_image",
+        "device": "default"
+      }
     },
     {
       "id": 3,
@@ -222,7 +235,10 @@
       },
       "widgets_values": [
         "qwen_image_vae.safetensors"
-      ]
+      ],
+      "widgets_values_named": {
+        "vae_name": "qwen_image_vae.safetensors"
+      }
     },
     {
       "id": 4,
@@ -280,7 +296,11 @@
       "widgets_values": [
         "Qwen-Image-Edit-2511-Lightning-4steps-V1.0-bf16.safetensors",
         1
-      ]
+      ],
+      "widgets_values_named": {
+        "lora_name": "Qwen-Image-Edit-2511-Lightning-4steps-V1.0-bf16.safetensors",
+        "strength_model": 1
+      }
     },
     {
       "id": 5,
@@ -350,7 +370,12 @@
         "lanczos",
         2,
         16
-      ]
+      ],
+      "widgets_values_named": {
+        "upscale_method": "lanczos",
+        "megapixels": 2,
+        "resolution_steps": 16
+      }
     },
     {
       "id": 6,
@@ -426,7 +451,10 @@
       },
       "widgets_values": [
         "Refine this exact image without redesigning it. Improve only genuine fine detail already implied by the source: natural skin texture, individual hair strands, fabric weave, fur, material texture, and clean object edges. Preserve the exact identity, facial proportions, expression, gaze, eye state, anatomy, pose, hands, clothing design, objects, text, composition, crop, camera, perspective, lighting, exposure, shadows, highlights, colors, and background. Do not beautify, relight, restyle, add, remove, replace, reshape, or invent scene content. Return the same image with more coherent natural micro-detail."
-      ]
+      ],
+      "widgets_values_named": {
+        "prompt": "Refine this exact image without redesigning it. Improve only genuine fine detail already implied by the source: natural skin texture, individual hair strands, fabric weave, fur, material texture, and clean object edges. Preserve the exact identity, facial proportions, expression, gaze, eye state, anatomy, pose, hands, clothing design, objects, text, composition, crop, camera, perspective, lighting, exposure, shadows, highlights, colors, and background. Do not beautify, relight, restyle, add, remove, replace, reshape, or invent scene content. Return the same image with more coherent natural micro-detail."
+      }
     },
     {
       "id": 7,
@@ -502,7 +530,10 @@
       },
       "widgets_values": [
         ""
-      ]
+      ],
+      "widgets_values_named": {
+        "prompt": ""
+      }
     },
     {
       "id": 8,
@@ -550,7 +581,10 @@
       },
       "widgets_values": [
         "index_timestep_zero"
-      ]
+      ],
+      "widgets_values_named": {
+        "reference_latents_method": "index_timestep_zero"
+      }
     },
     {
       "id": 9,
@@ -598,7 +632,10 @@
       },
       "widgets_values": [
         "index_timestep_zero"
-      ]
+      ],
+      "widgets_values_named": {
+        "reference_latents_method": "index_timestep_zero"
+      }
     },
     {
       "id": 10,
@@ -688,7 +725,10 @@
       },
       "widgets_values": [
         3.1
-      ]
+      ],
+      "widgets_values_named": {
+        "shift": 3.1
+      }
     },
     {
       "id": 12,
@@ -747,7 +787,11 @@
       "widgets_values": [
         1,
         false
-      ]
+      ],
+      "widgets_values_named": {
+        "strength": 1,
+        "pre_cfg": false
+      }
     },
     {
       "id": 13,
@@ -864,7 +908,16 @@
         "euler",
         "simple",
         1
-      ]
+      ],
+      "widgets_values_named": {
+        "seed": 1,
+        "control_after_generate": "randomize",
+        "steps": 4,
+        "cfg": 1,
+        "sampler_name": "euler",
+        "scheduler": "simple",
+        "denoise": 1
+      }
     },
     {
       "id": 14,
@@ -982,6 +1035,11 @@
         0.55,
         32
       ],
+      "widgets_values_named": {
+        "tone_lock": 0.85,
+        "refinement_strength": 0.55,
+        "detail_radius": 32
+      },
       "color": "#443066",
       "bgcolor": "#211635"
     },
@@ -1027,7 +1085,10 @@
       "properties": {},
       "widgets_values": [
         "MiniMax_H3_Detail_Refined"
-      ]
+      ],
+      "widgets_values_named": {
+        "filename_prefix": "MiniMax_H3_Detail_Refined"
+      }
     }
   ],
   "links": [
@@ -1227,7 +1288,7 @@
       ]
     },
     "image_studio": {
-      "release": "v21.0.0",
+      "release": "v22.0.0",
       "source_api": "examples/api/H3_DETAIL_REFINER_API.json"
     }
   },

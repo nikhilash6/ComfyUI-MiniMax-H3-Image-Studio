@@ -54,7 +54,11 @@
       "widgets_values": [
         "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
         "default"
-      ]
+      ],
+      "widgets_values_named": {
+        "unet_name": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+        "weight_dtype": "default"
+      }
     },
     {
       "id": 2,
@@ -117,7 +121,12 @@
         "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
         "minimax",
         "default"
-      ]
+      ],
+      "widgets_values_named": {
+        "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+        "type": "minimax",
+        "device": "default"
+      }
     },
     {
       "id": 3,
@@ -159,7 +168,10 @@
       },
       "widgets_values": [
         "minimax_h3_video_vae_fp16.safetensors"
-      ]
+      ],
+      "widgets_values_named": {
+        "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+      }
     },
     {
       "id": 4,
@@ -256,6 +268,12 @@
         2,
         false
       ],
+      "widgets_values_named": {
+        "aspect_ratio": "16:9 landscape",
+        "resolution_profile": "native detail | 0.98 MP",
+        "custom_megapixels": 2,
+        "limit_to_native_area": false
+      },
       "color": "#443066",
       "bgcolor": "#211635"
     },
@@ -373,6 +391,13 @@
         "recommended | 5 frames",
         true
       ],
+      "widgets_values_named": {
+        "prompt": "A finished cinematic editorial portrait of an adult woman, precise facial detail and natural skin texture, controlled Rembrandt studio lighting, sharp eyes, clean dark background, shallow depth of field, premium fashion photography.",
+        "width": 1344,
+        "height": 768,
+        "quality_profile": "recommended | 5 frames",
+        "optimize_for_still": true
+      },
       "color": "#24395c",
       "bgcolor": "#101c31"
     },
@@ -417,7 +442,11 @@
       "widgets_values": [
         1,
         "randomize"
-      ]
+      ],
+      "widgets_values_named": {
+        "noise_seed": 1,
+        "control_after_generate": "randomize"
+      }
     },
     {
       "id": 7,
@@ -619,6 +648,17 @@
         0.6,
         0.6
       ],
+      "widgets_values_named": {
+        "sampling_profile": "base speed | RES 12 steps",
+        "custom_sampler": "res_multistep",
+        "custom_scheduler": "simple",
+        "custom_steps": 20,
+        "custom_denoise": 1,
+        "custom_shift_video": 12,
+        "custom_shift_audio": 3,
+        "custom_beta_alpha": 0.6,
+        "custom_beta_beta": 0.6
+      },
       "color": "#5a3424",
       "bgcolor": "#2c1810"
     },
@@ -910,6 +950,16 @@
         4,
         false
       ],
+      "widgets_values_named": {
+        "strategy": "decode_recommended",
+        "manual_index": 0,
+        "skip_first_frames": 0,
+        "candidate_start": 0,
+        "candidate_end": 1,
+        "similarity_weight": 0.6,
+        "top_k": 4,
+        "emit_candidate_batch": false
+      },
       "color": "#25534d",
       "bgcolor": "#102a27"
     },
@@ -955,7 +1005,10 @@
       "properties": {},
       "widgets_values": [
         "MiniMax_H3_Image"
-      ]
+      ],
+      "widgets_values_named": {
+        "filename_prefix": "MiniMax_H3_Image"
+      }
     }
   ],
   "links": [
@@ -1099,7 +1152,7 @@
       ]
     },
     "image_studio": {
-      "release": "v21.0.0",
+      "release": "v22.0.0",
       "source_api": "examples/api/H3_T2I_API.json"
     }
   },

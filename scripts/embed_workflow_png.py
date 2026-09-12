@@ -14,6 +14,8 @@ from PIL import Image, PngImagePlugin
 
 
 SLUGS = (
+    "H3_IMAGE_GENERATE",
+    "H3_IMAGE_EDIT",
     "H3_T2I",
     "H3_T2I_SINGLE",
     "H3_I2I",
