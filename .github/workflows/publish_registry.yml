@@ -24,7 +24,9 @@ jobs:
 
       - name: Registry token is not configured
         if: ${{ env.REGISTRY_ACCESS_TOKEN == '' }}
-        run: echo "::warning::Create the Comfy publisher and add the REGISTRY_ACCESS_TOKEN repository secret, then run this workflow manually."
+        run: |
+          echo "::error::Configure REGISTRY_ACCESS_TOKEN before publishing."
+          exit 1
 
       - name: Prepare Registry changelog
         if: ${{ env.REGISTRY_ACCESS_TOKEN != '' }}
@@ -41,3 +43,35 @@ jobs:
         uses: Comfy-Org/publish-node-action@main
         with:
           personal_access_token: ${{ secrets.REGISTRY_ACCESS_TOKEN }}
+
+      - name: Verify Registry activation
+        if: ${{ env.REGISTRY_ACCESS_TOKEN != '' }}
+        timeout-minutes: 7
+        run: |
+          python - <<'PY'
+          import json
+          import time
+          import tomllib
+          import urllib.error
+          import urllib.request
+
+          with open("pyproject.toml", "rb") as handle:
+              version = tomllib.load(handle)["project"]["version"]
+          url = "https://api.comfy.org/nodes/minimax-h3-image-studio/versions?include_status_reason=true"
+          for attempt in range(18):
+              try:
+                  with urllib.request.urlopen(url, timeout=20) as response:
+                      versions = json.load(response)
+                  release = next((item for item in versions if item["version"] == version), {})
+                  status = release.get("status", "not listed")
+                  print(f"Registry {version}: {status}", flush=True)
+                  if status == "NodeVersionStatusActive":
+                      break
+                  if status in ("NodeVersionStatusFlagged", "NodeVersionStatusBanned", "NodeVersionStatusDeleted"):
+                      raise SystemExit("Registry did not activate this release: " + release.get("status_reason", status))
+              except (urllib.error.URLError, TimeoutError) as error:
+                  print(f"Registry lookup retry: {error}", flush=True)
+              time.sleep(20)
+          else:
+              raise SystemExit("Registry activation not confirmed; inspect its version status before announcing availability.")
+          PY

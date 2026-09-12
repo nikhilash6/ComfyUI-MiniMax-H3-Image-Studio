@@ -24,7 +24,7 @@
     "class_type": "H3ImageResolutionPreset",
     "inputs": {
       "aspect_ratio": "source image",
-      "resolution_profile": "balanced | 0.70 MP",
+      "resolution_profile": "native detail | 0.98 MP",
       "source_image": [
         "0",
         0

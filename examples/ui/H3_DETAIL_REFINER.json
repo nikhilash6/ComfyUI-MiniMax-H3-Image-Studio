@@ -1027,7 +1027,7 @@
         }
       ],
       "properties": {
-        "Image Studio": "v18",
+        "Image Studio": "MiniMax H3",
         "Node name for S&R": "H3DetailToneLock"
       },
       "widgets_values": [
@@ -1288,7 +1288,7 @@
       ]
     },
     "image_studio": {
-      "release": "v22.0.0",
+      "release": "v23.0.0",
       "source_api": "examples/api/H3_DETAIL_REFINER_API.json"
     }
   },

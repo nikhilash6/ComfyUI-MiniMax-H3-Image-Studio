@@ -113,6 +113,51 @@ class RuntimeNodeTests(unittest.TestCase):
         self.assertEqual(tuple(video.shape), (1, 24, 1, 48, 84))
         self.assertEqual(tuple(audio.shape), (1, 32, 2, 2))
 
+    def test_image_decoder_selects_latent_slice_without_losing_batch(self):
+        latent = torch.arange(2 * 24 * 2 * 4 * 4).reshape(2, 24, 2, 4, 4).float()
+
+        class Vae:
+            def decode(self, value):
+                self.value = value
+                return torch.zeros(2, 1, 64, 64, 3)
+
+        vae = Vae()
+        images, count, _, index = self.nodes.H3ImageDecode().decode(
+            {"samples": latent}, vae, "single_latent_slice", 1)
+        self.assertTrue(torch.equal(vae.value, latent[:, :, 1:2]))
+        self.assertEqual(tuple(images.shape), (2, 64, 64, 3))
+        self.assertEqual((count, index), (2, 0))
+        with self.assertRaises(ValueError):
+            self.nodes.H3ImageDecode().decode({"samples": latent}, vae, "single_latent_slice", 2)
+        with self.assertRaises(ValueError):
+            self.nodes.H3ImageDecode().decode({"samples": latent}, vae, "invalid_mode")
+
+    def test_single_slice_rejects_multi_frame_decoder_output(self):
+        class Vae:
+            def decode(self, value):
+                return torch.zeros(1, 4, 64, 64, 3)
+
+        with self.assertRaisesRegex(ValueError, "one image per batch item"):
+            self.nodes.H3ImageDecode().decode(
+                {"samples": torch.zeros(1, 24, 2, 4, 4)}, Vae(), "single_latent_slice", 0)
+
+    def test_single_slice_uses_whole_image_without_mutating_shared_vae(self):
+        class FirstStage:
+            tiling = True
+
+        class Vae:
+            first_stage_model = FirstStage()
+
+            def decode(self, value):
+                if self.first_stage_model.tiling:
+                    raise AssertionError("Image decoder must see the complete latent")
+                return torch.zeros(1, 64, 64, 3)
+
+        vae = Vae()
+        self.nodes.H3ImageDecode().decode(
+            {"samples": torch.zeros(1, 24, 2, 4, 4)}, vae, "single_latent_slice", 0, "full_image (experimental)")
+        self.assertTrue(vae.first_stage_model.tiling)
+
     def test_single_frame_i2i_uses_reference_conditioning(self):
         class Clip:
             def tokenize(self, prompt, **kwargs):
@@ -305,6 +350,8 @@ class RuntimeNodeTests(unittest.TestCase):
         )
 
     def test_768p_eight_step_profiles_use_distinct_shifts(self):
+        self.assertEqual(self.nodes.SAMPLING_PROFILES["FL2VA Turbo v1.2 768p | 4 steps"],
+                         ("euler", "simple", 4, 6.0, 3.0))
         self.assertEqual(self.nodes.SAMPLING_PROFILES["FL2VA Turbo v1.0 768p | 8 steps"],
                          ("euler", "simple", 8, 6.0, 3.0))
         self.assertEqual(self.nodes.SAMPLING_PROFILES["REF2VA Turbo v1.0 768p | 8 steps"],

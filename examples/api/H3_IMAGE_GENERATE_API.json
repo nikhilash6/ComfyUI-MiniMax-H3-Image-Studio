@@ -23,8 +23,8 @@
   "4": {
     "class_type": "H3ImageResolutionPreset",
     "inputs": {
-      "aspect_ratio": "16:9 landscape",
-      "resolution_profile": "balanced | 0.70 MP"
+      "aspect_ratio": "1:1 square",
+      "resolution_profile": "native detail | 0.98 MP"
     }
   },
   "5": {
@@ -34,7 +34,7 @@
         "2",
         0
       ],
-      "prompt": "A finished cinematic editorial portrait of an adult woman, precise facial detail and natural skin texture, controlled Rembrandt studio lighting, sharp eyes, clean dark background, shallow depth of field, premium fashion photography.",
+      "prompt": "Studio photograph of an adult woman wearing a green wool jacket, natural skin texture, soft light from the left, plain dark gray background.",
       "width": [
         "4",
         0

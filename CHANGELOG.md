@@ -4,6 +4,17 @@ All notable changes to MiniMax H3 Image Studio are documented here.
 
 ## [Unreleased]
 
+## [23.0.0] - 2026-09-12
+
+- Added paired four-step generation and reference-edit workflows with matching adapters; raised the eight-step entry points to about 1 MP.
+- Added independent latent-slice decoding so image VAEs can decode stills without forcing one-frame sampling.
+- Added a checked 500K image-decoder converter, including QKV head layout and SwiGLU gate-order conversion.
+- Tested generation, edits, frame profiles, decoder alternatives, and the Qwen refiner at larger resolutions. Published measurements and unfiltered comparison sheets.
+- Verified every explicit workflow input survives frontend import, save, and reopening; run tensor-based tests in CI instead of skipping them.
+- Removed developer benchmark clients from the Registry package. The Registry flagged v22's local HTTP test script; runtime nodes do not need that script.
+- Check Registry activation after upload; fail publication checks if the version is flagged or activation is unconfirmed.
+- Removed a stale version label and documented practical defaults and experimental limitations.
+
 ## [22.0.0] - 2026-09-12
 
 - Added eight-step 768p generation and REF2VA editing workflows with matching Turbo adapters and separate sigma shifts.

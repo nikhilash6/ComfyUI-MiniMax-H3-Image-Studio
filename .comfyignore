@@ -4,4 +4,11 @@ tests/
 scripts/build_frontend_artifacts.mjs
 scripts/embed_workflow_png.py
 scripts/validate_release.py
+scripts/build_fast_workflows.py
+scripts/benchmark_image_edit.py
+scripts/benchmark_matrix.py
+scripts/benchmark_gallery.py
+scripts/audit_benchmark.py
+scripts/probe_decoder.py
 assets/image-edit-examples/
+assets/benchmarks/

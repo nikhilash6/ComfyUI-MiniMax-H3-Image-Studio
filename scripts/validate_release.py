@@ -17,6 +17,8 @@ from pathlib import Path
 SLUGS = (
     "H3_IMAGE_GENERATE",
     "H3_IMAGE_EDIT",
+    "H3_IMAGE_DRAFT",
+    "H3_EDIT_DRAFT",
     "H3_T2I",
     "H3_T2I_SINGLE",
     "H3_I2I",
@@ -160,6 +162,9 @@ def validate_registry_assets(repo: Path) -> None:
     assert "REGISTRY_ACCESS_TOKEN" in workflow
     assert "COMFY_NODE_CHANGELOG" in workflow
     assert "scripts/extract_release_notes.py" in workflow
+    ignored = (repo / ".comfyignore").read_text(encoding="utf-8").splitlines()
+    for filename in ("benchmark_image_edit.py", "benchmark_matrix.py", "benchmark_gallery.py", "audit_benchmark.py"):
+        assert f"scripts/{filename}" in ignored, f"Development-only {filename} must not ship in the Registry package"
 
 
 def validate_api(repo: Path, slug: str) -> dict:
@@ -236,6 +241,20 @@ def validate_api(repo: Path, slug: str) -> dict:
             assert prepare["inputs"]["reference_transport"] == "native"
             assert prepare["inputs"]["reference_detail"] == "match_generation_area"
             assert "H3ImageToImagePrepare" not in nodes_by_type
+    if slug in {"H3_IMAGE_DRAFT", "H3_EDIT_DRAFT"}:
+        editing = slug == "H3_EDIT_DRAFT"
+        lora_id, lora = nodes_by_type["LoraLoaderModelOnly"]
+        assert lora["inputs"]["strength_model"] == 1.0
+        assert lora["inputs"]["lora_name"] == (
+            "minimax_h3_ref2v_turbo_4step_v0.1_comfyui_bf16.safetensors" if editing
+            else "minimax_h3_fl2v_turbo_4step_v1.2_768p_comfyui_bf16.safetensors"
+        )
+        assert sampling["inputs"]["model"] == [lora_id, 0]
+        assert profile == ("REF2VA Turbo v0.1 | 4 steps" if editing else "FL2VA Turbo v1.2 768p | 4 steps")
+        _, prepare = nodes_by_type["H3ReferenceEditPrepare" if editing else "H3TextToImagePrepare"]
+        assert prepare["inputs"]["quality_profile"] == "recommended | 5 frames"
+        if editing:
+            assert prepare["inputs"]["reference_transport"] == "native"
     if slug == "H3_REFERENCE_SINGLE":
         _, prepare = nodes_by_type["H3ReferenceEditPrepare"]
         _, unet = nodes_by_type["UNETLoader"]

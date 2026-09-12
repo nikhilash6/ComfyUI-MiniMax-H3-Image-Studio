@@ -54,12 +54,16 @@ git -C ComfyUI/custom_nodes/ComfyUI-MiniMax-H3-Image-Studio pull --ff-only
 
 Open a file from `examples/ui/`, or drag a file from `examples/png/` onto the canvas.
 
-Start with **Image Generate** or **Image Edit** below. Both use a matching 768p eight-step Turbo adapter, five frames, and a 0.70 MP canvas. Image Edit uses REF2VA references rather than locking frame zero to the original image. Existing workflows remain available for comparison.
+Start with **Image Generate** or **Image Edit** below. Both use a matching 768p eight-step Turbo adapter, five frames, and an approximately 1 MP canvas. **Draft** variants pair the four-step adapter with its matching sampling recipe. Image Edit uses REF2VA references rather than locking frame zero to the original image.
+
+Set Resolution Preset to `high-res | 2.00 MP` for larger output. Four-megapixel generation and editing were also tested, but cost more and do not guarantee better composition or detail. See the [measured results and comparison images](VALIDATION.md).
 
 | Workflow | UI JSON | PNG | API JSON |
 |---|---|---|---|
 | Image Generate, Turbo 768p | [Open](examples/ui/H3_IMAGE_GENERATE.json) | [Open](examples/png/H3_IMAGE_GENERATE.png) | [API](examples/api/H3_IMAGE_GENERATE_API.json) |
 | Image Edit, Turbo 768p | [Open](examples/ui/H3_IMAGE_EDIT.json) | [Open](examples/png/H3_IMAGE_EDIT.png) | [API](examples/api/H3_IMAGE_EDIT_API.json) |
+| Image Draft, four steps | [Open](examples/ui/H3_IMAGE_DRAFT.json) | [Open](examples/png/H3_IMAGE_DRAFT.png) | [API](examples/api/H3_IMAGE_DRAFT_API.json) |
+| Edit Draft, four steps | [Open](examples/ui/H3_EDIT_DRAFT.json) | [Open](examples/png/H3_EDIT_DRAFT.png) | [API](examples/api/H3_EDIT_DRAFT_API.json) |
 | Text to Image | [Open](examples/ui/H3_T2I.json) | [Open](examples/png/H3_T2I.png) | [API](examples/api/H3_T2I_API.json) |
 | Text to Image, single frame (experimental) | [Open](examples/ui/H3_T2I_SINGLE.json) | [Open](examples/png/H3_T2I_SINGLE.png) | [API](examples/api/H3_T2I_SINGLE_API.json) |
 | Image to Image | [Open](examples/ui/H3_I2I.json) | [Open](examples/png/H3_I2I.png) | [API](examples/api/H3_I2I_API.json) |
@@ -82,7 +86,7 @@ For image-to-image and reference-edit workflows, select an image in every `Load 
 | `Reference Edit` | Prepares REF2VA editing with up to nine ordered references. |
 | `Resolution Preset` | Calculates common H3 canvas sizes. |
 | `Sampling Preset` | Configures documented recipes or a complete custom sampler setup. |
-| `Exact Frame Decode` | Decodes the requested frame profile. |
+| `Exact Frame Decode` | Decodes the frame profile or independently decodes one latent slice with an image VAE. |
 | `Single Image Output` | Selects one frame or returns the decoded batch. |
 | `Advanced Resolution` | Calculates custom canvas sizes. |
 | `Advanced Sampling` | Exposes sampler, scheduler, denoise, and sigma shifts. |
@@ -135,6 +139,7 @@ H3 processes multiple frames even when the output is one image.
 | FL2VA Turbo v1.0 | `euler` | `simple` | 8 | 12/3 |
 | FL2VA Turbo v1.0 768p | `euler` | `simple` | 4 | 6/3 |
 | FL2VA Turbo v1.0 768p | `euler` | `simple` | 8 | 6/3 |
+| FL2VA Turbo v1.2 768p | `euler` | `simple` | 4 | 6/3 |
 | REF2VA Turbo v1.0 768p | `euler` | `simple` | 8 | 12/3 |
 | REF2VA Turbo v0.1 | `euler` | `simple` | 4 | 12/3 |
 | Hybrid single image | `er_sde` | `sgm_uniform` | 8 | 12/3 |
@@ -148,6 +153,7 @@ Choose `custom | use controls below` in `Sampling Preset` to select any installe
 | FL2VA Turbo v1.0, 8 steps | `minimax_h3_fl2v_turbo_8step_v1.0_comfyui_bf16.safetensors` |
 | FL2VA Turbo v1.0 768p, 4 steps | `minimax_h3_fl2v_turbo_4step_v1.0_768p_comfyui_bf16.safetensors` |
 | FL2VA Turbo v1.0 768p, 8 steps | `minimax_h3_fl2v_turbo_8step_v1.0_768p_comfyui_bf16.safetensors` |
+| FL2VA Turbo v1.2 768p, 4 steps | `minimax_h3_fl2v_turbo_4step_v1.2_768p_comfyui_bf16.safetensors` |
 | REF2VA Turbo v1.0 768p, 8 steps | `minimax_h3_ref2v_turbo_8step_v1.0_768p_comfyui_bf16.safetensors` |
 | REF2VA Turbo v0.1, 4 steps | `minimax_h3_ref2v_turbo_4step_v0.1_comfyui_bf16.safetensors` |
 
@@ -189,11 +195,27 @@ The image VAE is intended only for one-frame output. Keep `minimax_h3_video_vae_
 
 The detail adapter is set to `0.5` based on an earlier pose-transfer experiment. This is not a general guarantee: one-frame editing and adapter combinations remain experimental.
 
+The v23 tests reproduced visible pose and jacket changes with these workflows at 1 and 2 MP. They also exposed unwanted white borders in one single-frame generation. Keep the five-frame workflows as the starting point when reliability matters. More frames are not automatically higher quality; the profile labels are retained for saved-workflow compatibility.
+
 One-frame T2I uses the hybrid checkpoint's FL2VA base without an image reference. One-frame I2I cannot use FL2VA's exact frame-0 keyframe because that keyframe would occupy the only output frame; Image Studio automatically switches that case to Picture 1 reference conditioning. Multi-frame I2I continues to use the original FL2VA keyframe path.
 
 Downloads: [hybrid checkpoint](https://huggingface.co/smhfacct/Minimax-H3-fl2va-ref2va-hybrid-models), [single-image VAE](https://huggingface.co/Mamad8/MiniMax-H3-Image-VAE), [ThisIsFine adapter](https://huggingface.co/Mamad8/MaxiMin-HHH-R2V-ThisIsFine), and [Turbo adapter](https://huggingface.co/Comfy-Org/MiniMax-H3/tree/main/loras).
 
 The approach was prompted by the [single-image community workflow](https://www.reddit.com/r/StableDiffusion/comments/1vqka28/h3_singleimage_no_more_monkey_patching_also_no/). ComfyUI main subsequently added conversion from a regular empty image latent in [commit `0696f61`](https://github.com/Comfy-Org/ComfyUI/commit/0696f61dced6340086cdca64a96200c50f306c66). Image Studio builds the correct nested H3 video/audio latent itself, so its one-frame profile also works on ComfyUI 0.33.1 without that core commit.
+
+## Independent image-VAE decoding
+
+You can keep five-frame sampling and still use an image VAE: add a second `Load VAE`, connect it **only** to `Exact Frame Decode`, select `single_latent_slice`, and choose latent index 0 or 1. Keep the official video VAE connected to Reference Edit for encoding. Index 1 is not video frame 1; it is the second compressed temporal slice. Keep `spatial_decode=native` initially. `full_image (experimental)` follows whole-image decoding and uses more VRAM; it can introduce patch artifacts.
+
+The existing Mamad8 image VAE works with this path. The newer [500K decoder](https://huggingface.co/iamkaikai/MiniMax-H3-Single-Frame-VAE-500K) is **not a recommended upgrade**: the tested generated portrait showed patch artifacts both in native ComfyUI conversion and in the author's pinned Diffusers implementation. Changing the VAE does not repair failed edit conditioning.
+
+For reproducibility, `scripts/convert_single_frame_decoder.py` combines the author's decoder-only checkpoint with the official FP16 VAE encoder. It checks the decoder checksum, maps every tensor, interleaves QKV heads and swaps the SwiGLU halves. It refuses to overwrite an existing file. Weights are not redistributed. Run in the ComfyUI Python environment:
+
+```bash
+python scripts/convert_single_frame_decoder.py --base /models/vae/minimax_h3_video_vae_fp16.safetensors --decoder /downloads/minimax_h3_single_frame_decoder_500k.safetensors --output /models/vae/minimax_h3_image_vae_500k_comfy_fp16.safetensors
+```
+
+Review the model's license before use. This conversion is for experimental independent image decoding, not video output.
 
 ## Resolution and memory
 

@@ -24,6 +24,8 @@ const { chromium } = require(playwrightModule);
 const workflowSpecs = [
   { slug: "H3_IMAGE_GENERATE", api: "H3_IMAGE_GENERATE_API.json" },
   { slug: "H3_IMAGE_EDIT", api: "H3_IMAGE_EDIT_API.json" },
+  { slug: "H3_IMAGE_DRAFT", api: "H3_IMAGE_DRAFT_API.json" },
+  { slug: "H3_EDIT_DRAFT", api: "H3_EDIT_DRAFT_API.json" },
   { slug: "H3_T2I", api: "H3_T2I_API.json" },
   { slug: "H3_T2I_SINGLE", api: "H3_T2I_SINGLE_API.json" },
   { slug: "H3_I2I", api: "H3_I2I_API.json" },
@@ -198,12 +200,26 @@ for (const spec of workflowSpecs) {
     return {
       nodeCount: app.rootGraph._nodes?.length ?? 0,
       promptNodeCount: Object.keys(converted.output ?? {}).length,
+      prompt: converted.output,
     };
   }, workflow);
   if (roundTrip.nodeCount !== expectedNodeCount || roundTrip.promptNodeCount !== expectedNodeCount) {
     throw new Error(
       `${spec.slug}: UI round trip produced ${roundTrip.nodeCount} canvas / ${roundTrip.promptNodeCount} prompt nodes`,
     );
+  }
+  for (const [id, expected] of Object.entries(api)) {
+    const actual = roundTrip.prompt[id];
+    if (actual?.class_type !== expected.class_type) {
+      throw new Error(`${spec.slug}: node ${id} changed type after UI round trip`);
+    }
+    for (const [name, value] of Object.entries(expected.inputs)) {
+      const normalize = (input) => Array.isArray(input)
+        ? [String(input[0]), input[1]] : input;
+      if (JSON.stringify(normalize(actual.inputs[name])) !== JSON.stringify(normalize(value))) {
+        throw new Error(`${spec.slug}: ${id}.${name} changed from ${JSON.stringify(value)} to ${JSON.stringify(actual.inputs[name])}`);
+      }
+    }
   }
   console.log(`built ${path.relative(repoDir, uiPath)} and ${path.relative(repoDir, pngPath)}`);
 }

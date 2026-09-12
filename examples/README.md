@@ -6,10 +6,14 @@
 
 Open files from `ui/` or `png/` in ComfyUI. Files from `api/` do not contain a canvas layout.
 
-These workflows require MiniMax H3 Image Studio v21 or newer. Restart ComfyUI and reopen the workflow after updating the node package.
+Use MiniMax H3 Image Studio v23 or newer for this set. Restart ComfyUI and reopen the workflow after updating the node package. Saved canvases do not update automatically.
 
 | File stem | Workflow |
 |---|---|
+| `H3_IMAGE_GENERATE` | Start here: eight-step FL2VA generation, about 1 MP |
+| `H3_IMAGE_EDIT` | Start here: eight-step REF2VA editing, about 1 MP, source aspect ratio |
+| `H3_IMAGE_DRAFT` | Four-step FL2VA v1.2 generation |
+| `H3_EDIT_DRAFT` | Four-step REF2VA editing |
 | `H3_T2I` | FL2VA text-to-image |
 | `H3_T2I_SINGLE` | Experimental one-frame text-to-image with the H3 image VAE |
 | `H3_I2I` | FL2VA image-to-image |

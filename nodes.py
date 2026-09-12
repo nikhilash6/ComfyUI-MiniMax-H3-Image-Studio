@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: Unlicense
 from __future__ import annotations
 
+import copy
 import math
 import re
 from typing import Dict, List, Optional, Sequence, Tuple
@@ -77,6 +78,7 @@ SAMPLING_PROFILES: Dict[str, Tuple[str, str, int, float, float]] = {
     "Turbo v1.0 | 8 steps": ("euler", "simple", 8, 12.0, 3.0),
     "Turbo v1.0 768p | 4 steps": ("euler", "simple", 4, 6.0, 3.0),
     "FL2VA Turbo v1.0 768p | 8 steps": ("euler", "simple", 8, 6.0, 3.0),
+    "FL2VA Turbo v1.2 768p | 4 steps": ("euler", "simple", 4, 6.0, 3.0),
     "REF2VA Turbo v1.0 768p | 8 steps": ("euler", "simple", 8, 12.0, 3.0),
     "REF2VA Turbo v0.1 | 4 steps": ("euler", "simple", 4, 12.0, 3.0),
     "hybrid single image | ER-SDE 8 steps": ("er_sde", "sgm_uniform", 8, 12.0, 3.0),
@@ -1368,7 +1370,7 @@ class H3ImageDecode:
     """Decode the requested H3 frame profile."""
 
     DESCRIPTION = (
-        "Decodes the requested frame profile and returns the recommended still index."
+        "Decodes a temporal frame profile or one independent latent slice and returns the recommended still index."
     )
 
     @classmethod
@@ -1386,9 +1388,23 @@ class H3ImageDecode:
                 ),
                 "vae": (
                     "VAE",
-                    {"tooltip": "MiniMax H3 video VAE used to decode the video latent into an IMAGE batch."},
+                    {"tooltip": "Use the H3 video VAE for temporal decoding, or a compatible H3 image VAE for single_latent_slice."},
                 ),
-            }
+            },
+            "optional": {
+                "decode_mode": (["temporal", "single_latent_slice"], {
+                    "default": "temporal",
+                    "tooltip": "Temporal uses the video VAE. Single latent slice independently decodes one slice with an H3 image VAE, retaining multi-frame sampling context.",
+                }),
+                "latent_index": ("INT", {
+                    "default": 0, "min": 0, "max": 4096,
+                    "tooltip": "Used only for single_latent_slice. A five-frame H3 packet contains two latent slices: 0 and 1. This is not a decoded video-frame index.",
+                }),
+                "spatial_decode": (["native", "full_image (experimental)"], {
+                    "default": "native",
+                    "tooltip": "Single-slice mode only. Native retains the VAE's normal tiling. Full image disables internal H3 tiling on a configuration copy; it needs more VRAM and can produce patch artifacts on generated latents.",
+                }),
+            },
         }
 
     RETURN_TYPES = ("IMAGE", "INT", "STRING", "INT")
@@ -1402,10 +1418,38 @@ class H3ImageDecode:
     FUNCTION = "decode"
     CATEGORY = CATEGORY
 
-    def decode(self, samples, vae):
+    def decode(self, samples, vae, decode_mode="temporal", latent_index=0, spatial_decode="native"):
         latent = samples["samples"]
         if latent.is_nested:
             latent = latent.unbind()[0]
+
+        if decode_mode == "single_latent_slice":
+            if latent.ndim != 5 or not 0 <= latent_index < latent.shape[2]:
+                raise ValueError("latent_index must select an existing slice of an H3 video latent.")
+            decode_vae = vae
+            first_stage = getattr(vae, "first_stage_model", None)
+            if spatial_decode not in ("native", "full_image (experimental)"):
+                raise ValueError("Unknown spatial decode mode.")
+            if spatial_decode == "full_image (experimental)" and first_stage is not None and hasattr(first_stage, "tiling"):
+                # Copy configuration only; keep ComfyUI's managed weights shared.
+                decode_vae = copy.copy(vae)
+                decode_vae.first_stage_model = copy.copy(first_stage)
+                decode_vae.first_stage_model.tiling = False
+                if hasattr(vae, "memory_used_decode"):
+                    original_estimate = vae.memory_used_decode
+                    decode_vae.memory_used_decode = lambda shape, dtype: max(
+                        original_estimate(shape, dtype),
+                        shape[-2] * shape[-1] * 2048 * 96 * comfy.model_management.dtype_size(dtype),
+                    )
+            image = decode_vae.decode(latent[:, :, latent_index:latent_index + 1].clone())
+            if image.ndim == 5:
+                image = image.reshape(-1, *image.shape[-3:])
+            if image.ndim != 4 or image.shape[0] != latent.shape[0]:
+                raise ValueError("Single-slice decoding requires a compatible H3 VAE returning one image per batch item.")
+            info = f"Independently decoded latent slice {latent_index}, spatial mode {spatial_decode}; one image per batch item."
+            return image, int(image.shape[0]), info, 0
+        if decode_mode != "temporal":
+            raise ValueError("Unknown decode mode.")
 
         latent_batch = int(latent.shape[0]) if hasattr(latent, "shape") and len(latent.shape) > 0 else 1
         images = vae.decode(latent)

@@ -1,4 +1,10 @@
-# v22 validation — 12 September 2026
+# Validation
+
+The current report is [v23: high-resolution generation, editing, accelerators and decoder comparisons](docs/validation-v23.md).
+
+The v22 report below is historical and does not describe the complete v23 test coverage.
+
+## v22 validation — 12 September 2026
 
 Test machine: RTX 4090 24 GB, Windows, PyTorch 2.13.0+cu130, ComfyUI 0.34.0 (`12d52794`), default PyTorch attention. Only Image Studio was enabled as a custom extension. No refiner, upscaler, or cache-acceleration node was used.
 

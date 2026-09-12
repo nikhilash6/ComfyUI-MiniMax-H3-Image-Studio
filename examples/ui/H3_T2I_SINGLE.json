@@ -259,7 +259,7 @@
         }
       ],
       "properties": {
-        "Image Studio": "v18",
+        "Image Studio": "MiniMax H3",
         "Node name for S&R": "H3ImageResolutionPreset"
       },
       "widgets_values": [
@@ -381,7 +381,7 @@
         }
       ],
       "properties": {
-        "Image Studio": "v18",
+        "Image Studio": "MiniMax H3",
         "Node name for S&R": "H3TextToImagePrepare"
       },
       "widgets_values": [
@@ -634,7 +634,7 @@
         }
       ],
       "properties": {
-        "Image Studio": "v18",
+        "Image Studio": "MiniMax H3",
         "Node name for S&R": "H3ImageSamplingPreset"
       },
       "widgets_values": [
@@ -737,7 +737,7 @@
       ],
       "size": [
         390,
-        86
+        166
       ],
       "flags": {},
       "order": 10,
@@ -754,6 +754,36 @@
           "name": "vae",
           "type": "VAE",
           "link": 30
+        },
+        {
+          "localized_name": "decode_mode",
+          "name": "decode_mode",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "decode_mode"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "latent_index",
+          "name": "latent_index",
+          "shape": 7,
+          "type": "INT",
+          "widget": {
+            "name": "latent_index"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "spatial_decode",
+          "name": "spatial_decode",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "spatial_decode"
+          },
+          "link": null
         }
       ],
       "outputs": [
@@ -787,8 +817,18 @@
         }
       ],
       "properties": {
-        "Image Studio": "v18",
+        "Image Studio": "MiniMax H3",
         "Node name for S&R": "H3ImageDecode"
+      },
+      "widgets_values": [
+        "temporal",
+        0,
+        "native"
+      ],
+      "widgets_values_named": {
+        "decode_mode": "temporal",
+        "latent_index": 0,
+        "spatial_decode": "native"
       },
       "color": "#25534d",
       "bgcolor": "#102a27"
@@ -937,7 +977,7 @@
         }
       ],
       "properties": {
-        "Image Studio": "v18",
+        "Image Studio": "MiniMax H3",
         "Node name for S&R": "H3ImageFrameSelector"
       },
       "widgets_values": [
@@ -1222,7 +1262,7 @@
       ]
     },
     "image_studio": {
-      "release": "v22.0.0",
+      "release": "v23.0.0",
       "source_api": "examples/api/H3_T2I_SINGLE_API.json"
     }
   },
